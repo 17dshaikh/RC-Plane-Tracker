@@ -175,3 +175,53 @@ class DataBaseLocation(Login):
                 print("Invalid input")
                 time.sleep(1)
         return table2
+
+        def ChoosingDataBaseLocation(self, host, UserName, Password, Admin):
+        Flag = False
+        if Admin == 1:
+            os.system("clear")
+            con = mysql.connector.connect(host=host, user=UserName, password=Password)
+            cursor = con.cursor()
+            SQL = "SELECT DISTINCT TABLE_SCHEMA FROM INFORMATION_SCHEMA.COLUMNS;"
+            cursor.execute(SQL)
+            Details = cursor.fetchall()
+            while Flag == False:
+                os.system("clear")
+                for i in range(0, len(Details)):
+                    print(str(i + 1) + ") " + functools.reduce(operator.add, Details[i]))
+                cursor.close()
+                con.close()
+                UC = input("Choose database for data to be entered in: ")
+                if UC.isnumeric() == True:
+                    if 1 <= int(UC) <= len(Details):
+                        database = Details[int(UC) - 1]
+                        time.sleep(0.5)
+                        os.system("clear")
+                        Flag = True
+                    else:
+                        os.system("clear")
+                        print("Invalid input")
+                        time.sleep(1)
+                else:
+                    os.system("clear")
+                    print("Invalid input")
+                    time.sleep(1)
+            table1 = self._ChoosingGPSTable(host, database, UserName, Password, Admin)
+            table2 = self._ChoosingSensorTable(host, database, UserName, Password, Admin)
+            DataLocation = [database, table1, table2]
+            time.sleep(0.5)
+            os.system("clear")
+            return DataLocation
+
+        elif Admin == 0:
+            SQL = "Select Table_SCHEMA FROM information_schema.COLUMNS WHERE TABLE_NAME = 'SensorData' LIMIT 1"
+            con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+            cursor = con.cursor()
+            cursor.execute(SQL)
+            database = cursor.fetchall()
+            cursor.close()
+            con.close()
+            table1 = "GPSData"
+            table2 = "SensorData"
+            DataLocation = [database, table1, table2]
+            return DataLocation

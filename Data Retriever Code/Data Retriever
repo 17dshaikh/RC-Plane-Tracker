@@ -231,3 +231,30 @@ class DataBaseLocation(Login):
             table2 = "SensorData"
             DataLocation = [database, table1, table2]
             return DataLocation
+
+class TimeStamp():
+    def __init__(self):
+        pass
+
+    def CurrentTime(self):
+        CurrentTime = datetime.datetime.now()
+        FormattedTime = CurrentTime.timestamp()
+        return FormattedTime
+
+
+class Constants():
+    TemperatureLapseRate = 0.0065
+    UniversalGasConstant = 8.3144598
+    GravitationalAcceleration = 9.80665
+    MolarMassOfAir = 0.0289644
+
+
+class AltitudeAirPressure():
+    def __init__(self):
+        pass
+
+    def _Altitude(self, CurrentPresure, BaseTemperature, BasePressure, BaseAltitude):
+        Altitude = -(-BaseTemperature + (BaseTemperature * math.log((CurrentPresure / BasePressure), (
+                (Constants.GravitationalAcceleration * Constants.MolarMassOfAir) / (
+                Constants.UniversalGasConstant * Constants.TemperatureLapseRate)))) / Constants.TemperatureLapseRate) + BaseAltitude
+        return Altitude

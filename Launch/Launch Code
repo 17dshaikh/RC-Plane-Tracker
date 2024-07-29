@@ -449,3 +449,49 @@ class Launch(DataRetriever):
                         data[3]) + "," + str(data[4]) + "," + str(data[5]) + ");"
                     cursor.execute(SQL)
                     con.commit()
+                    SQL = "INSERT INTO " + functools.reduce(operator.add, self.database) + "." + functools.reduce(
+                        operator.add, self.table2) + " " + "Values( " + str(data[0]) + "," + functools.reduce(
+                        operator.add, self.RaspberryPiID) + "," + str(data[6]) + "," + str(data[7]) + "," + str(
+                        data[8]) + "," + str(data[9]) + "," + str(data[10]) + "," + str(data[11]) + "," + str(
+                        data[12]) + "," + str(data[13]) + "," + str(data[14]) + "," + str(data[15]) + "," + str(
+                        data[16]) + "," + str(data[17]) + "," + str(data[18]) + ");"
+                    cursor.execute(SQL)
+                    con.commit()
+                    cursor.close()
+                    con.close()
+                    end = time.time()
+                    if LiveSpeed == True:
+                        GPSSpeed.append(data[5])
+                        if len(GPSSpeed) > 1000:
+                            GPSSpeed = [GPSSpeed[0], GPSSpeed[len(GPSSpeed) - 1]]
+                        self._QuickSort(GPSSpeed,0,len(GPSSpeed-1))
+                        print("Fastest Speed is " + str(GPSSpeed[len(GPSSpeed) - 1]) + "ms^-1")
+                        print("Slowest speed is " + str(GPSSpeed[0]) + " ms^-1")
+                    if CurrentAltitude > (BaseAltitude + 120):
+                        print("EXCEEDED MAXIMUM HEIGHT PLEASE COME DOWN")
+                    print("Logging.....")
+                    print("Execution time is " + str(end - begin) + " seconds")
+                    x = randint(0, 7)
+                    y = randint(0, 7)
+                    r = randint(1, 255)
+                    g = randint(1, 255)
+                    b = randint(1, 255)
+                    sense.set_pixel(x, y, r, g, b)
+                except Exception as e:
+                    print(e)
+            print("The program has detected that you have now landed")
+            sense.show_message("The program has detected that you have now landed")
+
+def StartUp():
+    sense = SenseHat()
+    sense.clear()
+    sense._init_pressure()
+    os.system("clear")
+    DetailsFinder = DataBaseLocation()
+    LoginDetails = DetailsFinder.ConnectionFileReading()
+    IDs = DetailsFinder.Login()
+    DatabaseLocation = DetailsFinder.ChoosingDataBaseLocation(LoginDetails[0], LoginDetails[1], LoginDetails[2],functools.reduce(operator.add, IDs[2]))
+    StartUp = Launch(LoginDetails[0], LoginDetails[1], LoginDetails[2], IDs[0], IDs[1], DatabaseLocation[0],DatabaseLocation[1], DatabaseLocation[2])
+    StartUp.LiftOff()
+
+StartUp()

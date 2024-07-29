@@ -1,0 +1,56 @@
+import mysql.connector
+import os
+import time
+from mysql.connector import errorcode
+from pathlib import Path
+import os.path
+
+
+class Connection():
+    def __init__(self):
+        pass
+
+    def _ConnectionDetails(self):
+        host = input("Enter host name: ")
+        UserName = input("Enter username: ")
+        PassWord = input("Enter password: ")
+        try:
+            con = mysql.connector.connect(
+                host=host,
+                user=UserName,
+                password=PassWord
+            )
+            con.close()
+        except mysql.connector.Error as err:
+            if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+                print("INCORRECT USERNAME OR PASSWORD")
+                time.sleep(0.5)
+                exit()
+            else:
+                print(err)
+                time.sleep(0.5)
+                exit()
+        con.close()
+        time.sleep(0.5)
+        os.system("clear")
+        Details = [host, UserName, PassWord]
+        return Details
+
+
+class ConnectionFile(Connection):
+    def __init__(self):
+        super().__init__()
+
+    def ConnectionFileReading(self):
+        base_folder = Path(__file__).parent.resolve()
+        connnectiondetails = base_folder / "connectiondetails.txt"
+        if os.path.isfile(connnectiondetails):
+            text_file = open(connnectiondetails, "r")
+            details = text_file.read().split(',')
+        else:
+            details = super()._ConnectionDetails()
+            with open(connnectiondetails, 'w') as f:
+                f.write(details[0] + ",")
+                f.write(details[1] + ",")
+                f.write(details[2])
+        return details

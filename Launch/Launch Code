@@ -385,4 +385,67 @@ class Launch(DataRetriever):
                     print("Invalid input")
                     time.sleep(1)
                     os.system("clear")
-          
+            Flag = False
+            while Flag == False:
+                UC = input("Do you wish to have live data analysis on the speed Y/N: ")
+                if UC == "Y":
+                    LiveSpeed = True
+                    Flag = True
+                elif UC == "N":
+                    LiveSpeed = False
+                    Flag = True
+                else:
+                    Flag = False
+                    os.system("clear")
+                    print("Incorrect input")
+                    time.sleep(1)
+                    os.system("clear")
+            SerialPort = serial.Serial(port="/dev/serial0", baudrate=9600, timeout=0.5)
+            Data = ''
+            found = False
+            while found == False:
+                try:
+                    Data = SerialPort.readline().decode()
+                except Exception as e:
+                    print(e)
+                try:
+                    if Data.find("GGA") > 0:
+                        try:
+                            ParsedData = pynmea2.parse(Data)
+                            BaseAltitude = ParsedData.altitude
+                            BaseTemperature = sense.get_temperature_from_humidity()
+                            BaseTemperature = (sense.get_temperature_from_pressure() + BaseTemperature) / 2
+                            BasePressure = sense.get_pressure()
+                            found = True
+                        except Exception as e:
+                            print(e)
+                except Exception as e:
+                    print(e)
+            Flag = False
+            print("Base Altitude established. You can now fly")
+            print("Base Altitude is " + str(BaseAltitude) + "m")
+            print("Base Temperature is " + str(BaseTemperature) + "Â°C")
+            print("Base Pressure is " + str(BasePressure) + "")
+            for i in range(5, -1, -1):
+                sense.show_letter(str(i))
+                time.sleep(0.99)
+                sense.clear()
+            sense.clear()
+            CurrentAltitude = BaseAltitude + 1
+            while CurrentAltitude > BaseAltitude:
+                try:
+                    x = time.time()
+                    data = self._DataCollection(BasePressure, BaseTemperature, BaseAltitude)
+                    CurrentAltitude = data[2]
+                    y = time.time()
+                    print("Data Collection took " + str(y - x) + "seconds")
+                    begin = time.time()
+                    con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+                    cursor = con.cursor()
+                    x = time.time()
+                    SQL = "INSERT INTO " + functools.reduce(operator.add, self.database) + "." + functools.reduce(
+                        operator.add, self.table1) + " " + "Values( " + str(data[0]) + "," + functools.reduce(
+                        operator.add, self.SerialID) + "," + str(data[1]) + "," + str(data[2]) + "," + str(
+                        data[3]) + "," + str(data[4]) + "," + str(data[5]) + ");"
+                    cursor.execute(SQL)
+                    con.commit()

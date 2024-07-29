@@ -318,3 +318,71 @@ class DataRetriever(AltitudeAirPressure):
                 acc["y"], acc["z"], Pressure,
                 Humidity, PressureAltitude, Magnetometer, clear, red, green, blue]
         return Data
+
+class Launch(DataRetriever):
+    def __init__(self, host, UserName, Password, SerialID, RaspberryPiID, database, table1, table2):
+        DataRetriever.__init__(self)
+        self.host = host
+        self.UserName = UserName
+        self.Password = Password
+        self.SerialID = SerialID
+        self.RaspberryPiID = RaspberryPiID
+        self.database = database
+        self.table1 = table1
+        self.table2 = table2
+
+    def _Quicksort(self, Array, Low, High):
+        if Low >= High or Low < 0:
+            return
+        index = self._Partition(Array, Low, High)
+        self._QuickSort(Array, Low, index - 1)
+        self._QuickSort(Array, index + 1, High)
+
+
+    def _Partition(self,Array, Low, High):
+        pivot = Array[High]
+        i = Low - 1
+        for j in range(Low, High):
+            if Array[j] <= pivot:
+                i += 1
+                Array[i], Array[j] = Array[j], Array[i]
+        i += 1
+        Array[i], Array[High] = Array[High], Array[i]
+        return i
+
+
+    def LiftOff(self):
+        GPSSpeed = []
+        sense = SenseHat()
+        sense.set_rotation(270)
+        found = False
+        LiveSpeed = False
+        Flag = False
+        UC = input("Do you wish to begin data logging Y/N: ")
+        if UC == "Y":
+            while Flag == False:
+                UserInput = input("Enter sensitivity for colour sensor 1, 4, 16, 60: ")
+                if UserInput.isnumeric() == True:
+                    if int(UserInput) == 1:
+                        sense.color.gain = 1
+                        Flag = True
+                    elif int(UserInput) == 4:
+                        sense.color.gain = 4
+                        Flag = True
+                    elif int(UserInput) == 16:
+                        sense.color.gain = 16
+                        Flag = True
+                    elif int(UserInput) == 60:
+                        sense.color.gain = 60
+                        Flag = True
+                    else:
+                        os.system("clear")
+                        print("Invalid input")
+                        time.sleep(1)
+                        os.system("clear")
+                else:
+                    os.system("clear")
+                    print("Invalid input")
+                    time.sleep(1)
+                    os.system("clear")
+          

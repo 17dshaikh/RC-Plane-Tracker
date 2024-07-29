@@ -4,6 +4,8 @@ import time
 from mysql.connector import errorcode
 from pathlib import Path
 import os.path
+import functools
+import operator
 
 
 class Connection():
@@ -54,3 +56,52 @@ class ConnectionFile(Connection):
                 f.write(details[1] + ",")
                 f.write(details[2])
         return details
+
+class Login(ConnectionFile):
+    def __init__(self):
+        super().__init__()
+
+    def Login(self):
+        Result = []
+        while len(Result) == 0:
+            Details = super().ConnectionFileReading()
+            self.BMFAID = input('Enter BMFA id: ')
+            self.Name = input("Enter name: ")
+            self.Password = input('Enter password: ')
+            con = mysql.connector.connect(host=Details[0], user=Details[1], password=Details[2])
+            cursor = con.cursor()
+            LoginDetails = [self.BMFAID, self.Name, self.Password]
+            SQL = "Select Table_SCHEMA FROM information_schema.COLUMNS WHERE TABLE_NAME = 'SensorData' LIMIT 1"
+            con = mysql.connector.connect(host=Details[0], user=Details[1], password=Details[2])
+            cursor = con.cursor()
+            cursor.execute(SQL)
+            database = cursor.fetchone()
+            SQL = """SELECT Admin FROM """ + functools.reduce(operator.add, database[
+                0]) + ".Users" + """ WHERE BMFAID = %s AND Username = %s AND Password = %s"""
+            cursor.execute(SQL, LoginDetails)
+            Result = cursor.fetchall()
+            cursor.close()
+            con.close()
+            os.system("clear")
+            if len(Result) <= 0:
+                print("Incorrect BMFAID or Incorrect Name or Incorrect Password")
+                time.sleep(1)
+                os.system("clear")
+        con = mysql.connector.connect(host=Details[0], user=Details[1], password=Details[2])
+        cursor = con.cursor()
+        SQL = """SELECT SerialID FROM """ + functools.reduce(operator.add, database[
+            0]) + """.Users""" + """ WHERE BMFAID = %s AND Username = %s AND Password = %s"""
+        cursor.execute(SQL, LoginDetails)
+        SerialID = cursor.fetchone()
+        SQL = """SELECT RaspberryPiID FROM """ + functools.reduce(operator.add, database[
+            0]) + """.Users""" + """ WHERE BMFAID = %s AND Username = %s AND Password = %s"""
+        cursor.execute(SQL, LoginDetails)
+        RaspberryPiID = cursor.fetchone()
+        SQL = """SELECT Admin FROM """ + functools.reduce(operator.add, database[
+            0]) + """.Users""" + """ WHERE BMFAID = %s AND Username = %s AND Password = %s"""
+        cursor.execute(SQL, LoginDetails)
+        Admin = cursor.fetchone()
+        cursor.close()
+        con.close()
+        LoginDetails = [SerialID, RaspberryPiID, Admin]
+        return LoginDetails

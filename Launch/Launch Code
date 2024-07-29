@@ -1,0 +1,320 @@
+import mysql.connector
+import datetime
+import functools
+import operator
+import os
+import time
+import math
+from mysql.connector import errorcode
+from pathlib import Path
+import os.path
+from sense_hat import SenseHat
+import serial
+import pynmea2
+from random import randint
+
+
+class Connection():
+    def __init__(self):
+        pass
+
+    def _ConnectionDetails(self):
+        host = input("Enter host name: ")
+        UserName = input("Enter username: ")
+        PassWord = input("Enter password: ")
+        try:
+            con = mysql.connector.connect(
+                host=host,
+                user=UserName,
+                password=PassWord
+            )
+            con.close()
+        except mysql.connector.Error as err:
+            if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+                print("INCORRECT USERNAME OR PASSWORD")
+                time.sleep(0.5)
+                exit()
+            else:
+                print(err)
+                time.sleep(0.5)
+                exit()
+        con.close()
+        time.sleep(0.5)
+        os.system("clear")
+        Details = [host, UserName, PassWord]
+        return Details
+
+
+class ConnectionFile(Connection):
+    def __init__(self):
+        super().__init__()
+
+    def ConnectionFileReading(self):
+        base_folder = Path(__file__).parent.resolve()
+        connnectiondetails = base_folder / "connectiondetails.txt"
+        if os.path.isfile(connnectiondetails):
+            text_file = open(connnectiondetails, "r")
+            details = text_file.read().split(',')
+        else:
+            details = super()._ConnectionDetails()
+            with open(connnectiondetails, 'w') as f:
+                f.write(details[0] + ",")
+                f.write(details[1] + ",")
+                f.write(details[2])
+        return details
+
+
+class Login(ConnectionFile):
+    def __init__(self):
+        super().__init__()
+
+    def Login(self):
+        Result = []
+        while len(Result) == 0:
+            Details = super().ConnectionFileReading()
+            self.BMFAID = input('Enter BMFA id: ')
+            self.Name = input("Enter name: ")
+            self.Password = input('Enter password: ')
+            con = mysql.connector.connect(host=Details[0], user=Details[1], password=Details[2])
+            cursor = con.cursor()
+            LoginDetails = [self.BMFAID, self.Name, self.Password]
+            SQL = "Select Table_SCHEMA FROM information_schema.COLUMNS WHERE TABLE_NAME = 'SensorData' LIMIT 1"
+            con = mysql.connector.connect(host=Details[0], user=Details[1], password=Details[2])
+            cursor = con.cursor()
+            cursor.execute(SQL)
+            database = cursor.fetchone()
+            SQL = """SELECT Admin FROM """ + functools.reduce(operator.add, database[
+                0]) + ".Users" + """ WHERE BMFAID = %s AND Username = %s AND Password = %s"""
+            cursor.execute(SQL, LoginDetails)
+            Result = cursor.fetchall()
+            cursor.close()
+            con.close()
+            os.system("clear")
+            if len(Result) <= 0:
+                print("Incorrect BMFAID or Incorrect Name or Incorrect Password")
+                time.sleep(1)
+                os.system("clear")
+        con = mysql.connector.connect(host=Details[0], user=Details[1], password=Details[2])
+        cursor = con.cursor()
+        SQL = """SELECT SerialID FROM """ + functools.reduce(operator.add, database[
+            0]) + """.Users""" + """ WHERE BMFAID = %s AND Username = %s AND Password = %s"""
+        cursor.execute(SQL, LoginDetails)
+        SerialID = cursor.fetchone()
+        SQL = """SELECT RaspberryPiID FROM """ + functools.reduce(operator.add, database[
+            0]) + """.Users""" + """ WHERE BMFAID = %s AND Username = %s AND Password = %s"""
+        cursor.execute(SQL, LoginDetails)
+        RaspberryPiID = cursor.fetchone()
+        SQL = """SELECT Admin FROM """ + functools.reduce(operator.add, database[
+            0]) + """.Users""" + """ WHERE BMFAID = %s AND Username = %s AND Password = %s"""
+        cursor.execute(SQL, LoginDetails)
+        Admin = cursor.fetchone()
+        cursor.close()
+        con.close()
+        LoginDetails = [SerialID, RaspberryPiID, Admin]
+        return LoginDetails
+
+
+class DataBaseLocation(Login):
+    def __init__(self):
+        super().__init__()
+
+    def _ChoosingGPSTable(self, host, database, UserName, Password, Admin):
+        table1 = ""
+        Flag = False
+        while Flag == False:
+            os.system("clear")
+            SQL = "SELECT DISTINCT TABLE_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = " + "'" + functools.reduce(
+                operator.add, database) + "'" + ";"
+            con = mysql.connector.connect(host=host, user=UserName, password=Password)
+            cursor = con.cursor()
+            cursor.execute(SQL)
+            Details = cursor.fetchall()
+            for i in range(0, len(Details)):
+                print(str(i + 1) + ") " + functools.reduce(operator.add, Details[i]))
+            cursor.close()
+            con.close()
+            UC = input("Choose table for GPS data to be entered in: ")
+            if UC.isnumeric() == True:
+                if 1 <= int(UC) <= len(Details):
+                    table1 = Details[int(UC) - 1]
+                    time.sleep(0.5)
+                    os.system("clear")
+                    Flag = True
+                else:
+                    os.system("clear")
+                    print("Invalid input")
+                    time.sleep(1)
+            else:
+                os.system("clear")
+                print("Invalid input")
+                time.sleep(1)
+            return table1
+
+    def _ChoosingSensorTable(self, host, database, UserName, Password, Admin):
+        table2 = ""
+        Flag = False
+        while Flag == False:
+            os.system("clear")
+            SQL = "SELECT DISTINCT TABLE_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = " + "'" + functools.reduce(
+                operator.add, database) + "'" + ";"
+            con = mysql.connector.connect(host=host, user=UserName, password=Password)
+            cursor = con.cursor()
+            cursor.execute(SQL)
+            Details = cursor.fetchall()
+            for i in range(0, len(Details)):
+                print(str(i + 1) + ") " + functools.reduce(operator.add, Details[i]))
+            cursor.close()
+            con.close()
+            UC = input("Choose table for Sensor data to be entered in: ")
+            if UC.isnumeric() == True:
+                if 1 <= int(UC) <= len(Details):
+                    table2 = Details[int(UC) - 1]
+                    time.sleep(0.5)
+                    os.system("clear")
+                    Flag = True
+                else:
+                    os.system("clear")
+                    print("Invalid input")
+                    time.sleep(1)
+            else:
+                os.system("clear")
+                print("Invalid input")
+                time.sleep(1)
+        return table2
+
+    def ChoosingDataBaseLocation(self, host, UserName, Password, Admin):
+        Flag = False
+        if Admin == 1:
+            os.system("clear")
+            con = mysql.connector.connect(host=host, user=UserName, password=Password)
+            cursor = con.cursor()
+            SQL = "SELECT DISTINCT TABLE_SCHEMA FROM INFORMATION_SCHEMA.COLUMNS;"
+            cursor.execute(SQL)
+            Details = cursor.fetchall()
+            while Flag == False:
+                os.system("clear")
+                for i in range(0, len(Details)):
+                    print(str(i + 1) + ") " + functools.reduce(operator.add, Details[i]))
+                cursor.close()
+                con.close()
+                UC = input("Choose database for data to be entered in: ")
+                if UC.isnumeric() == True:
+                    if 1 <= int(UC) <= len(Details):
+                        database = Details[int(UC) - 1]
+                        time.sleep(0.5)
+                        os.system("clear")
+                        Flag = True
+                    else:
+                        os.system("clear")
+                        print("Invalid input")
+                        time.sleep(1)
+                else:
+                    os.system("clear")
+                    print("Invalid input")
+                    time.sleep(1)
+            table1 = self._ChoosingGPSTable(host, database, UserName, Password, Admin)
+            table2 = self._ChoosingSensorTable(host, database, UserName, Password, Admin)
+            DataLocation = [database, table1, table2]
+            time.sleep(0.5)
+            os.system("clear")
+            return DataLocation
+
+        elif Admin == 0:
+            SQL = "Select Table_SCHEMA FROM information_schema.COLUMNS WHERE TABLE_NAME = 'SensorData' LIMIT 1"
+            con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+            cursor = con.cursor()
+            cursor.execute(SQL)
+            database = cursor.fetchall()
+            cursor.close()
+            con.close()
+            table1 = "GPSData"
+            table2 = "SensorData"
+            DataLocation = [database, table1, table2]
+            return DataLocation
+
+
+class TimeStamp():
+    def __init__(self):
+        pass
+
+    def CurrentTime(self):
+        CurrentTime = datetime.datetime.now()
+        FormattedTime = CurrentTime.timestamp()
+        return FormattedTime
+
+
+class Constants():
+    TemperatureLapseRate = 0.0065
+    UniversalGasConstant = 8.3144598
+    GravitationalAcceleration = 9.80665
+    MolarMassOfAir = 0.0289644
+
+
+class AltitudeAirPressure():
+    def __init__(self):
+        pass
+
+    def _Altitude(self, CurrentPresure, BaseTemperature, BasePressure, BaseAltitude):
+        Altitude = -(-BaseTemperature + (BaseTemperature * math.log((CurrentPresure / BasePressure), (
+                (Constants.GravitationalAcceleration * Constants.MolarMassOfAir) / (
+                Constants.UniversalGasConstant * Constants.TemperatureLapseRate)))) / Constants.TemperatureLapseRate) + BaseAltitude
+        return Altitude
+
+
+class DataRetriever(AltitudeAirPressure):
+    def __init__(self):
+        AltitudeAirPressure.__init__(self)
+
+    def _DataCollection(self, BasePressure, BaseTemperature, BaseAltitude):
+        GPSAltitude = float(0)
+        Longitude = float(0)
+        Latitude = float(0)
+        NumOfSats = float(0)
+        GPSSpeed = float(0)
+        sense = SenseHat()
+        count = 0
+        count2 = 0
+        count3 = 0
+        SerialPort = serial.Serial(port="/dev/serial0", baudrate=9600, timeout=0.5)
+        Data = ''
+        while count < 2:
+            try:
+                Data = SerialPort.readline().decode()
+            except Exception as e:
+                print(e)
+            try:
+                if Data.find("GGA") > 0:
+                    ParsedData = pynmea2.parse(Data)
+                    Longitude = ParsedData.longitude
+                    Latitude = ParsedData.latitude
+                    GPSAltitude = ParsedData.altitude
+                    NumOfSats = ParsedData.num_sats
+                    count2 = count2 + 1
+                    if count2 == 1:
+                        count = count + 1
+                if Data.find("RMC") > 0:
+                    ParsedData = pynmea2.parse(Data)
+                    ReprParsedData = repr(ParsedData)
+                    SplitReprParsedData = ReprParsedData.split(",")
+                    for i in SplitReprParsedData:
+                        if i.find("spd_over_grnd") > 0:
+                            GPSSpeed = i[15:]
+                    count3 = count3 + 1
+                    if count3 == 1:
+                        count = count + 1
+            except Exception as e:
+                print(e)
+        Time = TimeStamp().CurrentTime()
+        Temperature = sense.get_temperature_from_humidity()
+        red, green, blue, clear = sense.colour.colour
+        Humidity = sense.get_humidity()
+        acc = sense.get_accelerometer_raw()
+        Acceleration = math.sqrt(math.pow(acc["x"], 2) + math.pow(acc["y"], 2) + math.pow(acc["z"], 2))
+        mag = sense.get_compass_raw()
+        Magnetometer = math.sqrt((pow(mag["x"], 2)) + (pow(mag["y"], 2)) + (pow(mag["z"], 2)))
+        Pressure = sense.get_pressure()
+        PressureAltitude = self._Altitude(Pressure, BaseTemperature, BasePressure, BaseAltitude)
+        Data = [Time, Longitude, Latitude, GPSAltitude, NumOfSats, GPSSpeed, Temperature, Acceleration, acc["x"],
+                acc["y"], acc["z"], Pressure,
+                Humidity, PressureAltitude, Magnetometer, clear, red, green, blue]
+        return Data

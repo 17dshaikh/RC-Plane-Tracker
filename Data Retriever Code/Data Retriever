@@ -258,3 +258,47 @@ class AltitudeAirPressure():
                 (Constants.GravitationalAcceleration * Constants.MolarMassOfAir) / (
                 Constants.UniversalGasConstant * Constants.TemperatureLapseRate)))) / Constants.TemperatureLapseRate) + BaseAltitude
         return Altitude
+
+class DataRetriever(AltitudeAirPressure):
+    def __init__(self):
+        AltitudeAirPressure.__init__(self)
+
+    def _DataCollection(self, BasePressure, BaseTemperature, BaseAltitude):
+        GPSAltitude = float(0)
+        Longitude = float(0)
+        Latitude = float(0)
+        NumOfSats = float(0)
+        GPSSpeed = float(0)
+        sense = SenseHat()
+        count = 0
+        count2 = 0
+        count3 = 0
+        SerialPort = serial.Serial(port="/dev/serial0", baudrate=9600, timeout=0.5)
+        Data = ''
+        while count < 2:
+            try:
+                Data = SerialPort.readline().decode()
+            except Exception as e:
+                print(e)
+            try:
+                if Data.find("GGA") > 0:
+                    ParsedData = pynmea2.parse(Data)
+                    Longitude = ParsedData.longitude
+                    Latitude = ParsedData.latitude
+                    GPSAltitude = ParsedData.altitude
+                    NumOfSats = ParsedData.num_sats
+                    count2 = count2 + 1
+                    if count2 == 1:
+                        count = count + 1
+                if Data.find("RMC") > 0:
+                    ParsedData = pynmea2.parse(Data)
+                    ReprParsedData = repr(ParsedData)
+                    SplitReprParsedData = ReprParsedData.split(",")
+                    for i in SplitReprParsedData:
+                        if i.find("spd_over_grnd") > 0:
+                            GPSSpeed = i[15:]
+                    count3 = count3 + 1
+                    if count3 == 1:
+                        count = count + 1
+            except Exception as e:
+                print(e)

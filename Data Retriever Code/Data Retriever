@@ -302,3 +302,17 @@ class DataRetriever(AltitudeAirPressure):
                         count = count + 1
             except Exception as e:
                 print(e)
+            Time = TimeStamp().CurrentTime()
+            Temperature = sense.get_temperature_from_humidity()
+            red, green, blue, clear = sense.colour.colour
+            Humidity = sense.get_humidity()
+            acc = sense.get_accelerometer_raw()
+            Acceleration = math.sqrt(math.pow(acc["x"], 2) + math.pow(acc["y"], 2) + math.pow(acc["z"], 2))
+            mag = sense.get_compass_raw()
+            Magnetometer = math.sqrt((pow(mag["x"], 2)) + (pow(mag["y"], 2)) + (pow(mag["z"], 2)))
+            Pressure = sense.get_pressure()
+            PressureAltitude = self._Altitude(Pressure, BaseTemperature, BasePressure, BaseAltitude)
+            Data = [Time, Longitude, Latitude, GPSAltitude, NumOfSats, GPSSpeed, Temperature, Acceleration, acc["x"],
+                    acc["y"], acc["z"], Pressure,
+                    Humidity, PressureAltitude, Magnetometer, clear, red, green, blue]
+            return Data

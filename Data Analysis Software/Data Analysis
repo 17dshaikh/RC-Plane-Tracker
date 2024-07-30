@@ -541,3 +541,248 @@ class Menu(DataBaseLocation):
         plt.title = "GPS Speed against time"
         plt.tick_params(bottom=False, labelbottom=False)
         plt.show()
+    def _SatellitesGraph(self):
+        self.SerialID = self._SerialID()
+        StartEndDateTime = self._DateTime()
+        insert = [(functools.reduce(operator.add, self.SerialID))]
+        SQL = "SELECT TimeStamp,NumOfSats FROM " + str(functools.reduce(operator.add, self.database)) + "." + str(
+            functools.reduce(operator.add, self.GPSDataTable)) + " WHERE " + str(
+            StartEndDateTime[0]) + " <= TimeStamp <= " + str(StartEndDateTime[1]) + " AND SerialID = %s"
+        con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+        cursor = con.cursor()
+        cursor.execute(SQL, insert)
+        data = cursor.fetchall()
+        cursor.close()
+        con.close()
+        Time = []
+        NumOfSats = []
+        for i in data:
+            Time.append(datetime.fromtimestamp(i[0]))
+            NumOfSats.append(i[1])
+        plt.plot(Time, NumOfSats)
+        plt.xlabel = "Date Time"
+        plt.ylabel = "Number of Satellites"
+        plt.title = "Number of Satellites against time"
+        plt.tick_params(bottom=False, labelbottom=False)
+        plt.show()
+
+    def _TemperatureGraph(self):
+        self.RaspberryPiID = self._RaspberryPiID()
+        StartEndDateTime = self._DateTime()
+        SQL = "SELECT TimeStamp,Temperature FROM " + str(functools.reduce(operator.add, self.database)) + "." + str(
+            functools.reduce(operator.add, self.SensorDataTable)) + " WHERE " + str(
+            StartEndDateTime[0]) + " <= TimeStamp <= " + str(StartEndDateTime[1]) + " AND RaspberryPiID = %s"
+        con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+        cursor = con.cursor()
+        insert = [(functools.reduce(operator.add, self.RaspberryPiID))]
+        cursor.execute(SQL, insert)
+        data = cursor.fetchall()
+        cursor.close()
+        con.close()
+        Time = []
+        Temperature = []
+        for i in data:
+            Time.append(datetime.fromtimestamp(i[0]))
+            Temperature.append(i[1])
+        plt.plot(Time, Temperature)
+        plt.xlabel = "Date Time"
+        plt.ylabel = "Temperature / Degrees Celsius"
+        plt.title = "Temperature against time"
+        plt.show()
+
+    def _AccelerationGraph(self):
+        self.RaspberryPiID = self._RaspberryPiID()
+        insert = [(functools.reduce(operator.add, self.RaspberryPiID))]
+        StartEndDateTime = self._DateTime()
+        SQL = "SELECT TimeStamp,Acceleration FROM " + str(functools.reduce(operator.add, self.database)) + "." + str(
+            functools.reduce(operator.add, self.SensorDataTable)) + " WHERE " + str(
+            StartEndDateTime[0]) + " <= TimeStamp <= " + str(StartEndDateTime[1]) + " AND RaspberryPiID = %s"
+        con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+        cursor = con.cursor()
+        cursor.execute(SQL, insert)
+        data = cursor.fetchall()
+        cursor.close()
+        con.close()
+        Time = []
+        Acceleration = []
+        for i in data:
+            Time.append(datetime.fromtimestamp(i[0]))
+            Acceleration.append(i[1])
+        plt.plot(Time, Acceleration)
+        plt.xlabel = "Date Time"
+        plt.ylabel = "Acceleration / Metres per second squared"
+        plt.title = "Acceleration against time"
+        plt.show()
+
+    def _AccelerationX(self):
+        self.RaspberryPiID = self._RaspberryPiID()
+        insert = [(functools.reduce(operator.add, self.RaspberryPiID))]
+        StartEndDateTime = self._DateTime()
+        SQL = "SELECT TimeStamp,Acceleration_X FROM " + str(functools.reduce(operator.add, self.database)) + "." + str(
+            functools.reduce(operator.add, self.SensorDataTable)) + " WHERE " + str(
+            StartEndDateTime[0]) + " <= TimeStamp <= " + str(StartEndDateTime[1]) + " AND RaspberryPiID = %s"
+        con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+        cursor = con.cursor()
+        cursor.execute(SQL, insert)
+        data = cursor.fetchall()
+        cursor.close()
+        con.close()
+        Time = []
+        Acceleration_X = []
+        for i in data:
+            Time.append(datetime.fromtimestamp(i[0]))
+            Acceleration_X.append(i[1])
+        plt.plot(Time, Acceleration_X)
+        plt.xlabel = "Date Time"
+        plt.ylabel = "Acceleration / Metres per second squared"
+        plt.title = "Acceleration X against time"
+        plt.show()
+
+    def _AccelerationY(self):
+        self.RaspberryPiID = self._RaspberryPiID()
+        StartEndDateTime = self._DateTime()
+        insert = [(functools.reduce(operator.add, self.RaspberryPiID))]
+        SQL = "SELECT TimeStamp,Acceleration_Y FROM " + str(functools.reduce(operator.add, self.database)) + "." + str(
+            functools.reduce(operator.add, self.SensorDataTable)) + " WHERE " + str(
+            StartEndDateTime[0]) + " <= TimeStamp <= " + str(StartEndDateTime[1]) + " AND RaspberryPiID = %s"
+        con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+        cursor = con.cursor()
+        cursor.execute(SQL, insert)
+        data = cursor.fetchall()
+        cursor.close()
+        con.close()
+        Time = []
+        Acceleration_Y = []
+        for i in data:
+            Time.append(datetime.fromtimestamp(i[0]))
+            Acceleration_Y.append(i[1])
+        plt.plot(Time, Acceleration_Y)
+        plt.xlabel = "Date Time"
+        plt.ylabel = "Acceleration / Metres per second squared"
+        plt.title = "Acceleration Y against time"
+        plt.show()
+
+    def _AccelerationZ(self):
+        self.RaspberryPiID = self._RaspberryPiID()
+        StartEndDateTime = self._DateTime()
+        insert = [(functools.reduce(operator.add, self.RaspberryPiID))]
+        SQL = "SELECT TimeStamp,Acceleration_Z FROM " + str(functools.reduce(operator.add, self.database)) + "." + str(
+            functools.reduce(operator.add, self.SensorDataTable)) + " WHERE " + str(
+            StartEndDateTime[0]) + " <= TimeStamp <= " + str(StartEndDateTime[1]) + " AND RaspberryPiID = %s"
+        con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+        cursor = con.cursor()
+        cursor.execute(SQL, insert)
+        data = cursor.fetchall()
+        cursor.close()
+        con.close()
+        Time = []
+        Acceleration_Z = []
+        for i in data:
+            Time.append(datetime.fromtimestamp(i[0]))
+            Acceleration_Z.append(i[1])
+        plt.plot(Time, Acceleration_Z)
+        plt.xlabel = "Date Time"
+        plt.ylabel = "Acceleration / Metres per second squared"
+        plt.title = "Acceleration Z against time"
+        plt.show()
+
+    def _Pressure(self):
+        self.RaspberryPiID = self._RaspberryPiID()
+        StartEndDateTime = self._DateTime()
+        insert = [(functools.reduce(operator.add, self.RaspberryPiID))]
+        SQL = "SELECT TimeStamp,Pressure FROM " + str(functools.reduce(operator.add, self.database)) + "." + str(
+            functools.reduce(operator.add, self.SensorDataTable)) + " WHERE " + str(
+            StartEndDateTime[0]) + " <= TimeStamp <= " + str(StartEndDateTime[1]) + " AND RaspberryPiID = %s"
+        con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+        cursor = con.cursor()
+        cursor.execute(SQL, insert)
+        data = cursor.fetchall()
+        cursor.close()
+        con.close()
+        Time = []
+        Pressure = []
+        for i in data:
+            Time.append(datetime.fromtimestamp(i[0]))
+            Pressure.append(i[1])
+        plt.plot(Time, Pressure)
+        plt.xlabel = "Date Time"
+        plt.ylabel = "Pressure / HectoPascals"
+        plt.title = "Pressure against time"
+        plt.tick_params(bottom=False, labelbottom=False)
+        plt.show()
+
+    def _PressureAltitude(self):
+        self.RaspberryPiID = self._RaspberryPiID()
+        StartEndDateTime = self._DateTime()
+        insert = [(functools.reduce(operator.add, self.RaspberryPiID))]
+        SQL = "SELECT TimeStamp,PressureAltitude FROM " + str(
+            functools.reduce(operator.add, self.database)) + "." + str(
+            functools.reduce(operator.add, self.SensorDataTable)) + " WHERE " + str(
+            StartEndDateTime[0]) + " <= TimeStamp <= " + str(StartEndDateTime[1]) + " AND RaspberryPiID = %s"
+        con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+        cursor = con.cursor()
+        cursor.execute(SQL, insert)
+        data = cursor.fetchall()
+        cursor.close()
+        con.close()
+        Time = []
+        PressureAltitude = []
+        for i in data:
+            Time.append(datetime.fromtimestamp(i[0]))
+            PressureAltitude.append(i[1])
+        plt.plot(Time, PressureAltitude)
+        plt.xlabel = "Date Time"
+        plt.ylabel = "Altitude / Metres"
+        plt.title = "Pressure Altitude against time"
+        plt.tick_params(bottom=False, labelbottom=False)
+        plt.show()
+
+    def _Magnetometer(self):
+        self.RaspberryPiID = self._RaspberryPiID()
+        StartEndDateTime = self._DateTime()
+        insert = [(functools.reduce(operator.add, self.RaspberryPiID))]
+        SQL = "SELECT TimeStamp,Magnetometer FROM " + str(functools.reduce(operator.add, self.database)) + "." + str(
+            functools.reduce(operator.add, self.SensorDataTable)) + " WHERE " + str(
+            StartEndDateTime[0]) + " <= TimeStamp <= " + str(StartEndDateTime[1]) + " AND RaspberryPiID = %s"
+        con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+        cursor = con.cursor()
+        cursor.execute(SQL, insert)
+        data = cursor.fetchall()
+        cursor.close()
+        con.close()
+        Time = []
+        Magnetometer = []
+        for i in data:
+            Time.append(datetime.fromtimestamp(i[0]))
+            Magnetometer.append(i[1])
+        plt.plot(Time, Magnetometer)
+        plt.xlabel = "Date Time"
+        plt.ylabel = "Magnetic Field Strength / Micro Tesla"
+        plt.title = "Magnetic Field Strength against time"
+        plt.tick_params(bottom=False, labelbottom=False)
+        plt.show()
+
+    def _Luminosity(self):
+        self.RaspberryPiID = self._RaspberryPiID()
+        StartEndDateTime = self._DateTime()
+        insert = [(functools.reduce(operator.add, self.RaspberryPiID))]
+        SQL = "SELECT TimeStamp,Humidity FROM " + str(functools.reduce(operator.add, self.database)) + "." + str(
+            functools.reduce(operator.add, self.SensorDataTable)) + " WHERE " + str(
+            StartEndDateTime[0]) + " <= TimeStamp <= " + str(StartEndDateTime[1]) + " AND RaspberryPiID = %s"
+        con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+        cursor = con.cursor()
+        cursor.execute(SQL, insert)
+        data = cursor.fetchall()
+        cursor.close()
+        con.close()
+        Time = []
+        Luminosity = []
+        for i in data:
+            Time.append(datetime.fromtimestamp(i[0]))
+            Luminosity.append(i[1])
+        plt.plot(Time, Luminosity)
+        plt.xlabel = "Date Time"
+        plt.ylabel = "Luminosity / Amount of incident light"
+        plt.title = "Luminosity against time"
+        plt.tick_params(bottom=False, labelbottom=False)
+        plt.show()

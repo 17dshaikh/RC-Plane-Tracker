@@ -786,3 +786,259 @@ class Menu(DataBaseLocation):
         plt.title = "Luminosity against time"
         plt.tick_params(bottom=False, labelbottom=False)
         plt.show()
+
+ def _RedLight(self):
+        self.RaspberryPiID = self._RaspberryPiID()
+        StartEndDateTime = self._DateTime()
+        insert = [(functools.reduce(operator.add, self.RaspberryPiID))]
+        SQL = "SELECT TimeStamp,Red_Light FROM " + str(functools.reduce(operator.add, self.database)) + "." + str(
+            functools.reduce(operator.add, self.SensorDataTable)) + " WHERE " + str(
+            StartEndDateTime[0]) + " <= TimeStamp <= " + str(StartEndDateTime[1]) + " AND RaspberryPiID = %s"
+        con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+        cursor = con.cursor()
+        cursor.execute(SQL, insert)
+        data = cursor.fetchall()
+        cursor.close()
+        con.close()
+        Time = []
+        Red_Light = []
+        for i in data:
+            Time.append(datetime.fromtimestamp(i[0]))
+            Red_Light.append(i[1])
+        plt.plot(Time, Red_Light)
+        plt.xlabel = "Date Time"
+        plt.ylabel = "Luminosity / Amount of incident light"
+        plt.title = "Red Light against time"
+        plt.tick_params(bottom=False, labelbottom=False)
+        plt.show()
+
+    def _GreenLight(self):
+        self.RaspberryPiID = self._RaspberryPiID()
+        StartEndDateTime = self._DateTime()
+        insert = [(functools.reduce(operator.add, self.RaspberryPiID))]
+        SQL = "SELECT TimeStamp,Green_Light FROM " + str(functools.reduce(operator.add, self.database)) + "." + str(
+            functools.reduce(operator.add, self.SensorDataTable)) + " WHERE " + str(
+            StartEndDateTime[0]) + " <= TimeStamp <= " + str(StartEndDateTime[1]) + " AND RaspberryPiID = %s"
+        con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+        cursor = con.cursor()
+        cursor.execute(SQL, insert)
+        data = cursor.fetchall()
+        cursor.close()
+        con.close()
+        Time = []
+        Green_Light = []
+        for i in data:
+            Time.append(datetime.fromtimestamp(i[0]))
+            Green_Light.append(i[1])
+        plt.plot(Time, Green_Light)
+        plt.xlabel = "Date Time"
+        plt.ylabel = "Luminosity / Amount of incident light"
+        plt.title = "Green Light against time"
+        plt.tick_params(bottom=False, labelbottom=False)
+        plt.show()
+
+    def _BlueLight(self):
+        self.RaspberryPiID = self._RaspberryPiID()
+        StartEndDateTime = self._DateTime()
+        insert = [(functools.reduce(operator.add, self.RaspberryPiID))]
+        SQL = "SELECT TimeStamp,Red_Light FROM " + str(functools.reduce(operator.add, self.database)) + "." + str(
+            functools.reduce(operator.add, self.SensorDataTable)) + " WHERE " + str(
+            StartEndDateTime[0]) + " <= TimeStamp <= " + str(StartEndDateTime[1]) + " AND RaspberryPiID = %s"
+        con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+        cursor = con.cursor()
+        cursor.execute(SQL, insert)
+        data = cursor.fetchall()
+        cursor.close()
+        con.close()
+        Time = []
+        Blue_Light = []
+        for i in data:
+            Time.append(datetime.fromtimestamp(i[0]))
+            Blue_Light.append(i[1])
+        plt.plot(Time, Blue_Light)
+        plt.xlabel = "Date Time"
+        plt.ylabel = "Luminosity / Amount of incident light"
+        plt.title = "Blue Light against time"
+        plt.tick_params(bottom=False, labelbottom=False)
+        plt.show()
+
+    def _CustomGraph(self):
+        XAxis = ""
+        X = 0
+        Y = 0
+        YAxis = ""
+        print("1) GPS Altitude")
+        print("2) GPS Speed")
+        print("3) Number of Satellites")
+        print("4) Temperature")
+        print("5) Acceleration")
+        print("6) Acceleration X")
+        print("7) Acceleration Y")
+        print("8) Acceleration Z")
+        print("9) Pressure")
+        print("10) Humidity")
+        print("11) Pressure Altitude")
+        print("12) Magnetic Field Strength")
+        print("13) Luminosity")
+        print("14) Red Light")
+        print("15) Green Light")
+        print("16) Blue Light")
+        UC = input("Enter choice for X-Axis: ")
+        if UC.isnumeric():
+            if 0 < int(UC) < 16:
+                if UC == "1":
+                    XAxis = "GPSAltitude"
+                    X = 1
+                elif UC == "2":
+                    XAxis = "GPSSpeed"
+                    X = 2
+                elif UC == "3":
+                    XAxis = "NumOfSats"
+                    X = 3
+                elif UC == "4":
+                    XAxis = "Temperature"
+                    X = 4
+                elif UC == "5":
+                    XAxis = "Acceleration"
+                    X = 5
+                elif UC == "6":
+                    XAxis = "Acceleration_X"
+                    X = 6
+                elif UC == "7":
+                    XAxis = "Acceleration_Y"
+                    X = 7
+                elif UC == "8":
+                    XAxis = "Acceleration_Z"
+                    X = 8
+                elif UC == "9":
+                    XAxis = "Pressure"
+                    X = 9
+                elif UC == "10":
+                    XAxis = "Humidity"
+                    X = 10
+                elif UC == "11":
+                    XAxis = "PressureAltitude"
+                    X = 11
+                elif UC == "12":
+                    XAxis = "Magnetometer"
+                    X = 12
+                elif UC == "13":
+                    XAxis = "Brightness"
+                    X = 13
+                elif UC == "14":
+                    XAxis = "Red_Light"
+                    X = 14
+                elif UC == "15":
+                    XAxis = "Green_Light"
+                    X = 15
+                elif UC == "16":
+                    XAxis = "Blue_Light"
+                    X = 16
+        print("1) GPS Altitude")
+        print("2) GPS Speed")
+        print("3) Number of Satellites")
+        print("4) Temperature")
+        print("5) Acceleration")
+        print("6) Acceleration X")
+        print("7) Acceleration Y")
+        print("8) Acceleration Z")
+        print("9) Pressure")
+        print("10) Humidity")
+        print("11) Pressure Altitude")
+        print("12) Magnetic Field Strength")
+        print("13) Luminosity")
+        print("14) Red Light")
+        print("15) Green Light")
+        print("16) Blue Light")
+        UC = input("Enter choice for Y-Axis: ")
+        if UC.isnumeric():
+            if 0 < int(UC) < 16:
+                if UC == "1":
+                    YAxis = "GPSAltitude"
+                    Y = 1
+                elif UC == "2":
+                    YAxis = "GPSSpeed"
+                    Y = 2
+                elif UC == "3":
+                    YAxis = "NumOfSats"
+                    Y = 3
+                elif UC == "4":
+                    YAxis = "Temperature"
+                    Y = 4
+                elif UC == "5":
+                    YAxis = "Acceleration"
+                    Y = 5
+                elif UC == "6":
+                    YAxis = "Acceleration_X"
+                    Y = 6
+                elif UC == "7":
+                    YAxis = "Acceleration_Y"
+                    Y = 7
+                elif UC == "8":
+                    YAxis = "Acceleration_Z"
+                    Y = 8
+                elif UC == "9":
+                    YAxis = "Pressure"
+                    Y = 9
+                elif UC == "10":
+                    YAxis = "Humidity"
+                    Y = 10
+                elif UC == "11":
+                    YAxis = "PressureAltitude"
+                    Y = 11
+                elif UC == "12":
+                    YAxis = "Magnetometer"
+                    Y = 12
+                elif UC == "13":
+                    YAxis = "Brightness"
+                    Y = 13
+                elif UC == "14":
+                    YAxis = "Red_Light"
+                    Y = 14
+                elif UC == "15":
+                    YAxis = "Green_Light"
+                    Y = 15
+                elif UC == "16":
+                    YAxis = "Blue_Light"
+                    Y = 16
+        X_Axis = []
+        Y_Axis = []
+        StartEndDateTime = self._DateTime()
+        if X <= 3:
+            self.SerialID = self._SerialID()
+            if Y <= 3:
+                self.SerialID = self._SerialID()
+                SQL = "SELECT" + XAxis + "," + YAxis + str(functools.reduce(operator.add, self.database)) + "." + str(
+                    functools.reduce(operator.add, self.SensorDataTable)) + " WHERE " + str(
+                    StartEndDateTime[0]) + " <= TimeStamp <= " + str(
+                    StartEndDateTime[1]) + " AND SerialID = " + self.SerialID
+                con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+                cursor = con.cursor()
+                cursor.execute(SQL)
+                data = cursor.fetchall()
+                cursor.close()
+                con.close()
+                for i in data:
+                    X_Axis.append(i[0])
+                    Y_Axis.append(i[1])
+                plt.plot(X_Axis, Y_Axis)
+                plt.show()
+            else:
+                self.RaspberryPiID = self._RaspberryPiID()
+                self.SerialID = self._SerialID()
+                SQL = "SELECT" + XAxis + "FROM " + str(self.GPSDataTable) + "WHERE " + str(
+                    StartEndDateTime[0]) + " <= TimeStamp <= " + str(
+                    StartEndDateTime[1]) + " AND SerialID = " + self.SerialID
+                con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+                cursor = con.cursor()
+                cursor.execute(SQL)
+                data = cursor.fetchall()
+                for i in data:
+                    X_Axis.append(i[0])
+                SQL = "SELECT" + YAxis + "FROM " + str(self.SensorDataTable) + "WHERE " + str(
+                    StartEndDateTime[0]) + " <= TimeStamp <= " + str(
+                    StartEndDateTime[1]) + " AND RaspberryPiID = " + self.RaspberryPiID
+                cursor.execute(SQL)
+                data = cursor.fetchall()
+                for i in data:
+                    Y_Axis.append(i[0])

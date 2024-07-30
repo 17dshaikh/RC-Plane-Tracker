@@ -1042,3 +1042,162 @@ class Menu(DataBaseLocation):
                 data = cursor.fetchall()
                 for i in data:
                     Y_Axis.append(i[0])
+                cursor.close()
+                con.close()
+                plt.plot(X_Axis, Y_Axis)
+                plt.show()
+        else:
+            if Y <= 3:
+                self.RaspberryPiID = self._RaspberryPiID()
+                self.SerialID = self._SerialID()
+                SQL = "SELECT" + YAxis + "FROM " + str(self.GPSDataTable) + "WHERE " + str(
+                    StartEndDateTime[0]) + " <= TimeStamp <= " + str(
+                    StartEndDateTime[1]) + " AND SerialID = " + self.SerialID
+                con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+                cursor = con.cursor()
+                cursor.execute(SQL)
+                data = cursor.fetchall()
+                for i in data:
+                    X_Axis.append(i[0])
+                SQL = "SELECT" + XAxis + "FROM " + str(self.SensorDataTable) + "WHERE " + str(
+                    StartEndDateTime[0]) + " <= TimeStamp <= " + str(
+                    StartEndDateTime[1]) + " AND RaspberryPiID = " + self.RaspberryPiID
+                cursor.execute(SQL)
+                data = cursor.fetchall()
+                for i in data:
+                    Y_Axis.append(i[0])
+                cursor.close()
+                con.close()
+                plt.plot(X_Axis, Y_Axis)
+                plt.show()
+            else:
+                self.RaspberryPiID = self._RaspberryPiID()
+                self.SerialID = self._SerialID()
+                SQL = "SELECT" + XAxis + "," + YAxis + "FROM " + str(self.SensorDataTable) + "WHERE " + str(
+                    StartEndDateTime[0]) + " <= TimeStamp <= " + str(
+                    StartEndDateTime[1]) + " AND RaspberryPiID = " + self.RaspberryPiID
+                con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+                cursor = con.cursor()
+                cursor.execute(SQL)
+                data = cursor.fetchall()
+                cursor.close()
+                con.close()
+                for i in data:
+                    X_Axis.append(i[0])
+                    Y_Axis.append(i[1])
+                plt.plot(X_Axis, Y_Axis)
+                plt.show()
+
+    def Menu(self):
+        self._MenuOptions()
+        UC = input("Choose an option: ")
+        if UC.isnumeric():
+            if 0 < int(UC) < 20:
+                if UC == "1":
+                    super()._ClearTerminal()
+                    self._FlightPath()
+                    self.Menu()
+                elif UC == "2":
+                    super()._ClearTerminal()
+                    self._AltitudeGraph()
+                    self.Menu()
+                elif UC == "3":
+                    super()._ClearTerminal()
+                    self._SpeedGraph()
+                    self.Menu()
+                elif UC == "4":
+                    super()._ClearTerminal()
+                    self._SatellitesGraph()
+                    self.Menu()
+                elif UC == "5":
+                    super()._ClearTerminal()
+                    self._TemperatureGraph()
+                    self.Menu()
+                elif UC == "6":
+                    super()._ClearTerminal()
+                    self._AltitudeGraph()
+                    self.Menu()
+                elif UC == "7":
+                    super()._ClearTerminal()
+                    self._AccelerationX()
+                    self.Menu()
+                elif UC == "8":
+                    super()._ClearTerminal()
+                    self._AccelerationY()
+                    self.Menu()
+                elif UC == "9":
+                    super()._ClearTerminal()
+                    self._AccelerationZ()
+                    self.Menu()
+                elif UC == "10":
+                    super()._ClearTerminal()
+                    self._Pressure()
+                    self.Menu()
+                elif UC == "11":
+                    super()._ClearTerminal()
+                    self._Humidity()
+                    self.Menu()
+                elif UC == "12":
+                    super()._ClearTerminal()
+                    self._PressureAltitude()
+                    self.Menu()
+                elif UC == "13":
+                    super()._ClearTerminal()
+                    self._Magnetometer()
+                    self.Menu()
+                elif UC == "14":
+                    super()._ClearTerminal()
+                    self._Luminosity()
+                    self.Menu()
+                elif UC == "15":
+                    super()._ClearTerminal()
+                    self._RedLight()
+                    self.Menu()
+                elif UC == "16":
+                    super()._ClearTerminal()
+                    self._GreenLight()
+                    self.Menu()
+                elif UC == "17":
+                    super()._ClearTerminal()
+                    self._BlueLight()
+                    self.Menu()
+                elif UC == "18":
+                    super()._ClearTerminal()
+                    self._CustomGraph()
+                    self.Menu()
+                elif UC == "19":
+                    super()._ClearTerminal()
+                    self._LongitudeAndLatitude()
+                    self.Menu()
+                else:
+                    super()._ClearTerminal()
+                    print("Invalid input")
+                    time.sleep(1)
+                    super()._ClearTerminal()
+                    self.Menu()
+            else:
+                super()._ClearTerminal()
+                print("Invalid input")
+                time.sleep(1)
+                super()._ClearTerminal()
+                self.Menu()
+        else:
+            super()._ClearTerminal()
+            print("Invalid input")
+            time.sleep(1)
+            super()._ClearTerminal()
+            self.Menu()
+
+
+def StartUp():
+    DetailsFinder = DataBaseLocation()
+    LoginDetails = DetailsFinder.ConnectionFileReading()
+    IDs = DetailsFinder.Login()
+    DatabaseLocation = DetailsFinder.ChoosingDataBaseLocation(LoginDetails[0], LoginDetails[1], LoginDetails[2],
+                                                              functools.reduce(operator.add, IDs[2]))
+    Menu2 = Menu(LoginDetails[0], LoginDetails[1], LoginDetails[2], IDs[0], IDs[1], DatabaseLocation[0],
+                 DatabaseLocation[1], DatabaseLocation[2], functools.reduce(operator.add, IDs[2]))
+    Menu2.Menu()
+
+
+StartUp()

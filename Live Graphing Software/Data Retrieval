@@ -246,3 +246,67 @@ class DataBaseLocation(Login):
             table2 = "SensorData"
             DataLocation = [database, table1, table2]
             return DataLocation
+
+def GetData(host, Username, Password, table1, table2, Database):
+    Longitude = []
+    Latitude = []
+    TimeStamp1 = []
+    TimeStamp2 = []
+    AltitudeGPS = []
+    NumOfSats = []
+    GPSSpeed = []
+    Temperature = []
+    Acceleration = []
+    Acceleration_X = []
+    Acceleration_Y = []
+    Acceleration_Z = []
+    Pressure = []
+    Humidity = []
+    PressureAltitude = []
+    Magnetometer = []
+    Brightness = []
+    Red_Light = []
+    Green_Light = []
+    Blue_Light = []
+    x = time.time()
+    SQL = "SELECT TimeStamp,Longitude,Latitude,GPSAltitude,NumOfSats,GPSSpeed FROM " + functools.reduce(operator.add,
+                                                                                                        Database) + "." + functools.reduce(
+        operator.add, table1) + " WHERE TimeStamp >= " + str(time.time() - 25) + " LIMIT 25"
+    con = mysql.connector.connect(host=host, user=Username, password=Password)
+    cursor = con.cursor()
+    cursor.execute(SQL)
+    data1 = cursor.fetchall()
+    SQL = "SELECT TimeStamp,Temperature,Acceleration,Acceleration_X,Acceleration_Y,Acceleration_Z,Pressure,Humidity,PressureAltitude,Magnetometer,Brightness,Red_Light,Green_Light,Blue_Light FROM " + functools.reduce(
+        operator.add, Database) + "." + functools.reduce(operator.add, table2) + " WHERE TimeStamp >= " + str(
+        time.time() - 25) + " LIMIT 25"
+    con = mysql.connector.connect(host=host, user=Username, password=Password)
+    cursor = con.cursor()
+    cursor.execute(SQL)
+    data2 = cursor.fetchall()
+    for i in data1:
+        TimeStamp1.append(i[0])
+        Longitude.append(i[1])
+        Latitude.append(i[2])
+        AltitudeGPS.append(i[3])
+        NumOfSats.append(i[4])
+        GPSSpeed.append(i[5])
+    for i in data2:
+        TimeStamp2.append(i[0])
+        Temperature.append(i[1])
+        Acceleration.append(i[2])
+        Acceleration_X.append(i[3])
+        Acceleration_Y.append(i[4])
+        Acceleration_Z.append(i[5])
+        Pressure.append(i[6])
+        Humidity.append(i[7])
+        PressureAltitude.append(i[8])
+        Magnetometer.append(i[9])
+        Brightness.append(i[10])
+        Red_Light.append(i[11])
+        Green_Light.append(i[12])
+        Blue_Light.append(i[13])
+    cursor.close()
+    con.close()
+    y = time.time()
+    print("Data collection took " + str(y - x) + " seconds")
+    return TimeStamp1, TimeStamp2, Longitude, Latitude, AltitudeGPS, NumOfSats, GPSSpeed, Temperature, Acceleration, Acceleration_X, Acceleration_Y, Acceleration_Z, Pressure, Humidity, PressureAltitude, Magnetometer, Brightness, Red_Light, Green_Light, Blue_Light

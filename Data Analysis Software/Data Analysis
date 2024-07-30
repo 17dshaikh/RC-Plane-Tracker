@@ -381,5 +381,163 @@ class Menu(DataBaseLocation):
         data = cursor.fetchall()
         cursor.close()
         con.close()
+        for i in data:
+            Latitude.append(i[0])
+            Longitude.append(i[1])
+        m = folium.Map(location=[Latitude[0], Longitude[0]], zoom_start=5, control_scale=True, max_bounds=True)
+        fg = folium.FeatureGroup(name="Markers", show=False).add_to(m)
+        eg = folium.FeatureGroup(name="Plane Path", show=True).add_to(m)
+        folium.Marker(location=[Latitude[0], Longitude[0]], popup=folium.Popup(
+            "This is the start point of the plane at " + str(datetime.fromtimestamp(StartEndDateTime[0])))).add_to(fg)
+        folium.Marker(location=[Latitude[len(Longitude) - 1], Longitude[len(Longitude) - 1]], popup=folium.Popup(
+            "This is the end point of the plane at " + str(datetime.fromtimestamp(StartEndDateTime[0])))).add_to(fg)
+        for i in range(0, len(Latitude) - 1):
+            Coordinates.append([Latitude[i], Longitude[i]])
+        folium.PolyLine(locations=Coordinates, color="a0437F2", weight=5, tooltip="Plane Path").add_to(eg)
+        folium.plugins.Fullscreen(position="topright", title="Expand me", title_cancel="Exit me",
+                                  force_separate_button=True).add_to(m)
+        folium.plugins.LocateControl(auto_start=True).add_to(m)
+        MousePosition().add_to(m)
+        MiniMap(toggle_display=True).add_to(m)
+        m.add_child(MeasureControl())
+        if HeatMapOption:
+            HeatMapData = []
+            SQL = "SELECT GPSSpeed FROM " + str(functools.reduce(operator.add, self.database)) + "." + str(
+                functools.reduce(operator.add, self.GPSDataTable)) + " WHERE " + str(
+                StartEndDateTime[0]) + " <= TimeStamp <= " + str(StartEndDateTime[1]) + " AND SerialID =  %s "
+            con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+            cursor = con.cursor()
+            cursor.execute(SQL, insert)
+            data = cursor.fetchall()
+            cursor.close()
+            con.close()
+            counter = 0
+            for i in data:
+                HeatMapData.append([Latitude[counter], Longitude[counter], functools.reduce(operator.add, i)])
+                counter = counter + 1
+            cg = folium.FeatureGroup(name="HeatMap", show=False).add_to(m)
+            HeatMap(HeatMapData).add_to(cg)
+        folium.LayerControl().add_to(m)
+        m.show_in_browser()
+        m.save("Plane_Path.html")
 
+    def _LongitudeAndLatitude(self):
+        self.SerialID = self._SerialID()
+        StartEndDateTime = self._DateTime()
+        insert = [(functools.reduce(operator.add, self.SerialID))]
+        SQL = "SELECT Latitude,Longitude FROM " + str(functools.reduce(operator.add, self.database)) + "." + str(
+            functools.reduce(operator.add, self.GPSDataTable)) + " WHERE " + str(
+            StartEndDateTime[0]) + " <= TimeStamp <= " + str(StartEndDateTime[1]) + " AND SerialID =  %s "
+        con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+        cursor = con.cursor()
+        cursor.execute(SQL, insert)
+        data = cursor.fetchall()
+        cursor.close()
+        con.close()
+        Longitude = []
+        Latitude = []
+        Coordinates = []
+        for i in data:
+            Coordinates.append((i[0], i[1]))
+        fig = go.Figure(go.Scattergeo())
+        map_projections = [
+            "airy", "aitoff", "albers", "albers usa", "august", "azimuthal equal area",
+            "azimuthal equidistant", "baker", "bertin1953", "boggs", "bonne", "bottomley",
+            "bromley", "collignon", "conic conformal", "conic equal area", "conic equidistant",
+            "craig", "craster", "cylindrical equal area", "cylindrical stereographic",
+            "eckert1", "eckert2", "eckert3", "eckert4", "eckert5", "eckert6", "eisenlohr",
+            "equal earth", "equirectangular", "fahey", "foucaut", "foucaut sinusoidal",
+            "ginzburg4", "ginzburg5", "ginzburg6", "ginzburg8", "ginzburg9", "gnomonic",
+            "gringorten", "gringorten quincuncial", "guyou", "hammer", "hill", "homolosine",
+            "hufnagel", "hyperelliptical", "kavrayskiy7", "lagrange", "larrivee", "laskowski",
+            "loximuthal", "mercator", "miller", "mollweide", "mt flat polar parabolic",
+            "mt flat polar quartic", "mt flat polar sinusoidal", "natural earth", "natural earth1",
+            "natural earth2", "nell hammer", "nicolosi", "orthographic", "patterson",
+            "peirce quincuncial", "polyconic", "rectangular polyconic", "robinson", "satellite",
+            "sinu mollweide", "sinusoidal", "stereographic", "times", "transverse mercator",
+            "van der grinten", "van der grinten2", "van der grinten3", "van der grinten4",
+            "wagner4", "wagner6", "wiechel", "winkel tripel", "winkel3"
+        ]
+        for i in range(0, len(map_projections) - 1):
+            print(str(i) + ") " + map_projections[i])
+        UC = input("Choose a map projection: ")
+        Flag = False
+        while not Flag:
+            if UC.isnumeric():
+                if 0 < int(UC) < 97:
+                    Flag = True
+                    import plotly.io as pio
+                    pio.renderers.default = "browser"
+                    df = pd.DataFrame(Coordinates, columns=["Latitude", "Longitude"])
+                    fig = px.scatter_geo(df, lat="Latitude", lon="Longitude")
+                    fig.update_geos(projection_type=map_projections[int(UC)])
+                    fig.update_layout(height=300, margin={"r": 0, "t": 0, "l": 0, "b": 0})
+                    fig.show()
+                    time.sleep(20)
+                else:
+                    super()._ClearTerminal()
+                    print("Invalid Input")
+                    time.sleep(10)
+                    super()._ClearTerminal()
+                    for i in range(0, len(map_projections) - 1):
+                        print(str(i) + ") " + map_projections[i])
+                    UC = input("Choose a map projection: ")
+            else:
+                super()._ClearTerminal()
+                print("Invalid Input")
+                time.sleep(1)
+                super()._ClearTerminal()
+                for i in range(0, len(map_projections) - 1):
+                    print(str(i) + ") " + map_projections[i])
+                UC = input("Choose a map projection: ")
+        self.Menu()
 
+    def _AltitudeGraph(self):
+        self.SerialID = self._SerialID()
+        StartEndDateTime = self._DateTime()
+        insert = [(functools.reduce(operator.add, self.SerialID))]
+        SQL = "SELECT TimeStamp,GPSAltitude FROM " + str(functools.reduce(operator.add, self.database)) + "." + str(
+            functools.reduce(operator.add, self.GPSDataTable)) + " WHERE " + str(
+            StartEndDateTime[0]) + " <= TimeStamp <= " + str(StartEndDateTime[1]) + " AND SerialID =  %s "
+        con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+        cursor = con.cursor()
+        cursor.execute(SQL, insert)
+        data = cursor.fetchall()
+        cursor.close()
+        con.close()
+        Time = []
+        Elevation = []
+        for i in data:
+            Time.append(datetime.fromtimestamp(i[0]))
+            Elevation.append(i[1])
+        plt.plot(Time, Elevation)
+        plt.xlabel = "Date Time"
+        plt.ylabel = "Elevation / Metres"
+        plt.title = "Elevation against time"
+        plt.tick_params(bottom=False, labelbottom=False)
+        plt.show()
+
+    def _SpeedGraph(self):
+        self.SerialID = self._SerialID()
+        StartEndDateTime = self._DateTime()
+        insert = [(functools.reduce(operator.add, self.SerialID))]
+        SQL = "SELECT TimeStamp,GPSSpeed FROM " + str(functools.reduce(operator.add, self.database)) + "." + str(
+            functools.reduce(operator.add, self.GPSDataTable)) + " WHERE " + str(
+            StartEndDateTime[0]) + " <= TimeStamp <= " + str(StartEndDateTime[1]) + " AND SerialID =  %s "
+        con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+        cursor = con.cursor()
+        cursor.execute(SQL, insert)
+        data = cursor.fetchall()
+        cursor.close()
+        con.close()
+        Time = []
+        Speed = []
+        for i in data:
+            Time.append(datetime.fromtimestamp(i[0]))
+            Speed.append(i[1])
+        plt.plot(Time, Speed)
+        plt.xlabel = "Date Time"
+        plt.ylabel = "Speed / Metres per second"
+        plt.title = "GPS Speed against time"
+        plt.tick_params(bottom=False, labelbottom=False)
+        plt.show()

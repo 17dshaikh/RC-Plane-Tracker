@@ -310,3 +310,118 @@ def GetData(host, Username, Password, table1, table2, Database):
     y = time.time()
     print("Data collection took " + str(y - x) + " seconds")
     return TimeStamp1, TimeStamp2, Longitude, Latitude, AltitudeGPS, NumOfSats, GPSSpeed, Temperature, Acceleration, Acceleration_X, Acceleration_Y, Acceleration_Z, Pressure, Humidity, PressureAltitude, Magnetometer, Brightness, Red_Light, Green_Light, Blue_Light
+
+fig, a = plt.subplots(3, 6)
+class Datagraphing():
+    def __init__(self, host, Username, Password, Database, Table1, Table2):
+        self.host = host
+        self.Username = Username
+        self.Password = Password
+        self.Database = Database
+        self.Table1 = Table1
+        self.Table2 = Table2
+
+    def animation(self, i):
+        Graph_Details = {"Longitude": {"Title": "Longitude", "YLabel": ""},
+                         "Latitude": {"Title": "Latitude", "YLabel": ""},
+                         "Altitude": {"Title": "Altitude", "YLabel": "Metres"},
+                         "NumOfSats": {"Title": "Number of Satellites", "YLabel": ""},
+                         "GPSSpeed": {"Title": "Speed", "YLabel": "Metres per second"},
+                         "Temperature": {"Title": "Temperature", "YLabel": "Degrees Celsius"},
+                         "Acceleration": {"Title": "Acceleration", "YLabel": "Metres per second squared"},
+                         "Acceleration_X": {"Title": "Acceleration X", "YLabel": "Metres per second squared"},
+                         "Acceleration_Y": {"Title": "Acceleration Y", "YLabel": "Metres per second squared"},
+                         "Acceleration_Z": {"Title": "Acceleration Z", "YLabel": "Metres per second squared"},
+                         "Pressure": {"Title": "Pressure", "YLabel": "Hectopascals"},
+                         "Humidity": {"Title": "Humidity", "YLabel": "Relative Humidity / %"},
+                         "Pressure_Altitude": {"Title": "Pressure altitude", "YLabel": "Metres"},
+                         "Magnetic_Field_Strength": {"Title": "Magnetic Field Strength", "YLabel": "MicroTesla"},
+                         "Luminosity": {"Title": "Luminosity", "YLabel": "Amount of incident light"},
+                         "Red_Light": {"Title": "Red Light", "YLabel": "Amount of incident red light"},
+                         "Green_Light": {"Title": "Green Light", "YLabel": "Amount of incident green light"},
+                         "Blue_Light": {"Title": "Blue Light", "YLabel": "Amount of incident blue light"}
+                         }
+        x = time.time()
+        TimeStamp1, TimeStamp2, Longitude, Latitude, GPSAltitude, NumOfSats, GPSSpeed, Temperature, Acceleration, Acceleration_X, Acceleration_Y, Acceleration_Z, Pressure, Humidity, PressureAltitude, Magnetometer, Brightness, Red_Light, Green_Light, Blue_Light = GetData(
+            self.host, self.Username, self.Password, self.Table1, self.Table2, self.Database)
+        for i in range(0, 3):
+            for j in range(0, 6):
+                a[i, j].clear()
+
+        for i in range(0, 3):
+            for j in range(0, 6):
+                a[i, j].get_xaxis().set_visible(False)
+
+        a[0, 0].set_title(Graph_Details["Longitude"]["Title"])
+        a[0, 1].set_title(Graph_Details["Latitude"]["Title"])
+        a[0, 2].set_title(Graph_Details["Altitude"]["Title"])
+        a[0, 3].set_title(Graph_Details["NumOfSats"]["Title"])
+        a[0, 4].set_title(Graph_Details["GPSSpeed"]["Title"])
+        a[0, 5].set_title(Graph_Details["Temperature"]["Title"])
+        a[1, 0].set_title(Graph_Details["Acceleration"]["Title"])
+        a[1, 1].set_title(Graph_Details["Acceleration_X"]["Title"])
+        a[1, 2].set_title(Graph_Details["Acceleration_Y"]["Title"])
+        a[1, 3].set_title(Graph_Details["Acceleration_Z"]["Title"])
+        a[1, 4].set_title(Graph_Details["Pressure"]["Title"])
+        a[1, 5].set_title(Graph_Details["Humidity"]["Title"])
+        a[2, 0].set_title(Graph_Details["Pressure_Altitude"]["Title"])
+        a[2, 1].set_title(Graph_Details["Magnetic_Field_Strength"]["Title"])
+        a[2, 2].set_title(Graph_Details["Luminosity"]["Title"])
+        a[2, 3].set_title(Graph_Details["Red_Light"]["Title"])
+        a[2, 4].set_title(Graph_Details["Green_Light"]["Title"])
+        a[2, 5].set_title(Graph_Details["Blue_Light"]["Title"])
+
+        a[0, 2].set_ylabel(Graph_Details["Altitude"]["YLabel"])
+        a[0, 4].set_ylabel(Graph_Details["GPSSpeed"]["YLabel"])
+        a[0, 5].set_ylabel(Graph_Details["Temperature"]["YLabel"])
+        a[1, 0].set_ylabel(Graph_Details["Acceleration"]["YLabel"])
+        a[1, 1].set_ylabel(Graph_Details["Acceleration_X"]["YLabel"])
+        a[1, 2].set_ylabel(Graph_Details["Acceleration_Y"]["YLabel"])
+        a[1, 3].set_ylabel(Graph_Details["Acceleration_Z"]["YLabel"])
+        a[1, 4].set_ylabel(Graph_Details["Pressure"]["YLabel"])
+        a[1, 5].set_ylabel(Graph_Details["Humidity"]["YLabel"])
+        a[2, 0].set_ylabel(Graph_Details["Pressure_Altitude"]["YLabel"])
+        a[2, 1].set_ylabel(Graph_Details["Magnetic_Field_Strength"]["YLabel"])
+        a[2, 2].set_ylabel(Graph_Details["Luminosity"]["YLabel"])
+        a[2, 3].set_ylabel(Graph_Details["Red_Light"]["YLabel"])
+        a[2, 4].set_ylabel(Graph_Details["Green_Light"]["YLabel"])
+        a[2, 5].set_ylabel(Graph_Details["Blue_Light"]["YLabel"])
+
+        a[0, 0].plot(TimeStamp1, Longitude, color='b')
+        a[0, 1].plot(TimeStamp1, Latitude, color='b')
+        a[0, 2].plot(TimeStamp1, GPSAltitude, color='b')
+        a[0, 3].plot(TimeStamp1, NumOfSats, color='b')
+        a[0, 4].plot(TimeStamp1, GPSSpeed, color='b')
+        a[0, 5].plot(TimeStamp2, Temperature, color='b')
+        a[1, 0].plot(TimeStamp2, Acceleration, color='b')
+        a[1, 1].plot(TimeStamp2, Acceleration_X, color='b')
+        a[1, 2].plot(TimeStamp2, Acceleration_Y, color='b')
+        a[1, 3].plot(TimeStamp2, Acceleration_Z, color='b')
+        a[1, 4].plot(TimeStamp2, Pressure, color='b')
+        a[1, 5].plot(TimeStamp2, Humidity, color='b')
+        a[2, 0].plot(TimeStamp2, PressureAltitude, color='b')
+        a[2, 1].plot(TimeStamp2, Magnetometer, color='b')
+        a[2, 2].plot(TimeStamp2, Brightness, color='b')
+        a[2, 3].plot(TimeStamp2, Red_Light, color='b')
+        a[2, 4].plot(TimeStamp2, Green_Light, color='b')
+        a[2, 5].plot(TimeStamp2, Blue_Light, color='b')
+        y = time.time()
+        print("Plotting took " + str(y - x) + " seconds")
+        print("Repeat at " + str(datetime.now()))
+
+
+def StartUp():
+    DetailsFinder = DataBaseLocation()
+    LoginDetails = DetailsFinder.ConnectionFileReading()
+    IDs = DetailsFinder.Login()
+    DatabaseLocation = DetailsFinder.ChoosingDataBaseLocation(LoginDetails[0], LoginDetails[1], LoginDetails[2],
+                                                              functools.reduce(operator.add, IDs[2]))
+    fig, a = plt.subplots(3, 6)
+    plt.subplots_adjust(left=0.07, bottom=0.076, right=0.9, top=0.9, wspace=0.6, hspace=0.445)
+    Grapher = Datagraphing(LoginDetails[0], LoginDetails[1], LoginDetails[2], DatabaseLocation[0], DatabaseLocation[1],
+                           DatabaseLocation[2])
+    ani = FuncAnimation(fig, Grapher.animation, interval=200)
+    plt.show()
+
+
+StartUp()

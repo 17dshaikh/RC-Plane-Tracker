@@ -1,0 +1,248 @@
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+import mysql.connector
+from mysql.connector import errorcode
+import time
+import os
+from pathlib import Path
+import os.path
+import functools
+import operator
+from datetime import datetime
+
+
+class Connection():
+    def __init__(self):
+        pass
+
+    def _ClearTerminal(self):
+        if os.name == 'nt':  # Windows
+            os.system('cls')
+        elif os.name == 'posix':  # Mac or Linux
+            os.system('clear')
+
+    def _ConnectionDetails(self):
+        Flag = False
+        host = input("Enter host name: ")
+        UserName = input("Enter username: ")
+        PassWord = input("Enter password: ")
+        while Flag == False:
+            try:
+                self._ClearTerminal()
+                con = mysql.connector.connect(
+                    host=host,
+                    user=UserName,
+                    password=PassWord
+                )
+                Flag = True
+                con.close()
+            except mysql.connector.Error as err:
+                if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+                    self._ClearTerminal()
+                    print("INCORRECT USERNAME OR PASSWORD")
+                    time.sleep(0.5)
+                else:
+                    self._ClearTerminal()
+                    print(err)
+                    time.sleep(0.5)
+            con.close()
+        time.sleep(0.5)
+        self._ClearTerminal()
+        Details = [host, UserName, PassWord]
+        return Details
+
+
+class ConnectionFile(Connection):
+    def __init__(self):
+        super().__init__()
+
+    def ConnectionFileReading(self):
+        base_folder = Path(__file__).parent.resolve()
+        connnectiondetails = base_folder / "connectiondetails.txt"
+        if os.path.isfile(connnectiondetails):
+            text_file = open(connnectiondetails, "r")
+            details = text_file.read().split(',')
+        else:
+            details = super()._ConnectionDetails()
+            with open(connnectiondetails, 'w') as f:
+                f.write(details[0] + ",")
+                f.write(details[1] + ",")
+                f.write(details[2])
+        return details
+
+
+class Login(ConnectionFile):
+    def __init__(self):
+        super().__init__()
+
+    def Login(self):
+        Result = []
+        while len(Result) == 0:
+            Details = super().ConnectionFileReading()
+            self.BMFAID = input('Enter BMFA id: ')
+            self.Name = input("Enter name: ")
+            self.Password = input('Enter password: ')
+            con = mysql.connector.connect(host=Details[0], user=Details[1], password=Details[2])
+            cursor = con.cursor()
+            LoginDetails = [self.BMFAID, self.Name, self.Password]
+            SQL = "Select Table_SCHEMA FROM information_schema.COLUMNS WHERE TABLE_NAME = 'SensorData' LIMIT 1"
+            con = mysql.connector.connect(host=Details[0], user=Details[1], password=Details[2])
+            cursor = con.cursor()
+            cursor.execute(SQL)
+            database = cursor.fetchone()
+            SQL = """SELECT Admin FROM """ + functools.reduce(operator.add, database[
+                0]) + ".Users" + """ WHERE BMFAID = %s AND Username = %s AND Password = %s"""
+            cursor.execute(SQL, LoginDetails)
+            Result = cursor.fetchall()
+            cursor.close()
+            con.close()
+            super()._ClearTerminal()
+            if len(Result) <= 0:
+                print("Incorrect BMFAID or Incorrect Name or Incorrect Password")
+                time.sleep(1)
+                super()._ClearTerminal()
+        con = mysql.connector.connect(host=Details[0], user=Details[1], password=Details[2])
+        cursor = con.cursor()
+        SQL = """SELECT SerialID FROM """ + functools.reduce(operator.add, database[
+            0]) + """.Users""" + """ WHERE BMFAID = %s AND Username = %s AND Password = %s"""
+        cursor.execute(SQL, LoginDetails)
+        SerialID = cursor.fetchone()
+        SQL = """SELECT RaspberryPiID FROM """ + functools.reduce(operator.add, database[
+            0]) + """.Users""" + """ WHERE BMFAID = %s AND Username = %s AND Password = %s"""
+        cursor.execute(SQL, LoginDetails)
+        RaspberryPiID = cursor.fetchone()
+        SQL = """SELECT Admin FROM """ + functools.reduce(operator.add, database[
+            0]) + """.Users""" + """ WHERE BMFAID = %s AND Username = %s AND Password = %s"""
+        cursor.execute(SQL, LoginDetails)
+        Admin = cursor.fetchone()
+        cursor.close()
+        con.close()
+        LoginDetails = [SerialID, RaspberryPiID, Admin]
+        return LoginDetails
+
+
+class DataBaseLocation(Login):
+    def __init__(self):
+        super().__init__()
+
+    def _ChoosingGPSTable(self, host, database, UserName, Password, Admin):
+        table1 = ""
+        Flag = False
+        while Flag == False:
+            super()._ClearTerminal()
+            SQL = "SELECT DISTINCT TABLE_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = " + "'" + functools.reduce(
+                operator.add, database) + "'" + ";"
+            con = mysql.connector.connect(host=host, user=UserName, password=Password)
+            cursor = con.cursor()
+            cursor.execute(SQL)
+            Details = cursor.fetchall()
+            for i in range(0, len(Details)):
+                print(str(i + 1) + ") " + functools.reduce(operator.add, Details[i]))
+            cursor.close()
+            con.close()
+            UC = input("Choose table for GPS data to be taken from or enter X to retun to previous page: ")
+            if UC.isnumeric() == True:
+                if 1 <= int(UC) <= len(Details):
+                    table1 = Details[int(UC) - 1]
+                    time.sleep(0.5)
+                    super()._ClearTerminal()
+                    Flag = True
+                else:
+                    super()._ClearTerminal()
+                    print("Invalid input")
+                    time.sleep(1)
+            elif UC == "X":
+                super()._ClearTerminal()
+                Flag = True
+                self.ChoosingDataBaseLocation(host, UserName, Password, Admin)
+            else:
+                super()._ClearTerminal()
+                print("Invalid input")
+                time.sleep(1)
+        return table1
+
+    def _ChoosingSensorTable(self, host, database, UserName, Password, Admin):
+        table2 = ""
+        Flag = False
+        while Flag == False:
+            super()._ClearTerminal()
+            SQL = "SELECT DISTINCT TABLE_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = " + "'" + functools.reduce(
+                operator.add, database) + "'" + ";"
+            con = mysql.connector.connect(host=host, user=UserName, password=Password)
+            cursor = con.cursor()
+            cursor.execute(SQL)
+            Details = cursor.fetchall()
+            for i in range(0, len(Details)):
+                print(str(i + 1) + ") " + functools.reduce(operator.add, Details[i]))
+            cursor.close()
+            con.close()
+            UC = input("Choose table for Sensor data to be taken from or type X to return to previous page: ")
+            if UC.isnumeric() == True:
+                if 1 <= int(UC) <= len(Details):
+                    table2 = Details[int(UC) - 1]
+                    time.sleep(0.5)
+                    super()._ClearTerminal()
+                    Flag = True
+                else:
+                    super()._ClearTerminal()
+                    print("Invalid input")
+                    time.sleep(1)
+            elif UC == "X":
+                super()._ClearTerminal()
+                Flag = True
+                self._ChoosingGPSTable(host, database, UserName, Password, Admin)
+            else:
+                super()._ClearTerminal()
+                print("Invalid input")
+                time.sleep(1)
+        return table2
+
+    def ChoosingDataBaseLocation(self, host, UserName, Password, Admin):
+        Flag = False
+        if Admin == 1:
+            super()._ClearTerminal()
+            con = mysql.connector.connect(host=host, user=UserName, password=Password)
+            cursor = con.cursor()
+            SQL = "SELECT DISTINCT TABLE_SCHEMA FROM INFORMATION_SCHEMA.COLUMNS;"
+            cursor.execute(SQL)
+            Details = cursor.fetchall()
+            while Flag == False:
+                super()._ClearTerminal()
+                for i in range(0, len(Details)):
+                    print(str(i + 1) + ") " + functools.reduce(operator.add, Details[i]))
+                cursor.close()
+                con.close()
+                UC = input("Choose database for data to be taken from: ")
+                if UC.isnumeric() == True:
+                    if 1 <= int(UC) <= len(Details):
+                        database = Details[int(UC) - 1]
+                        time.sleep(0.5)
+                        super()._ClearTerminal()
+                        Flag = True
+                    else:
+                        super()._ClearTerminal()
+                        print("Invalid input")
+                        time.sleep(1)
+                else:
+                    super()._ClearTerminal()
+                    print("Invalid input")
+                    time.sleep(1)
+            table1 = self._ChoosingGPSTable(host, database, UserName, Password, Admin)
+            table2 = self._ChoosingSensorTable(host, database, UserName, Password, Admin)
+            DataLocation = [database, table1, table2]
+            time.sleep(0.5)
+            super()._ClearTerminal()
+            return DataLocation
+
+        elif Admin == 0:
+            SQL = "Select Table_SCHEMA FROM information_schema.COLUMNS WHERE TABLE_NAME = 'SensorData' LIMIT 1"
+            con = mysql.connector.connect(host=self.host, user=self.UserName, password=self.Password)
+            cursor = con.cursor()
+            cursor.execute(SQL)
+            database = cursor.fetchall()
+            cursor.close()
+            con.close()
+            table1 = "GPSData"
+            table2 = "SensorData"
+            DataLocation = [database, table1, table2]
+            return DataLocation
